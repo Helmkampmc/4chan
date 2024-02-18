@@ -1,5 +1,5 @@
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup  # Correctly using BeautifulSoup from beautifulsoup4
 import streamlit as st
 
 def search_4chan(key_terms):
@@ -33,22 +33,21 @@ def search_4chan(key_terms):
 
 def search_reddit(key_terms):
     subreddit = 'popular'  # Specify the Reddit subreddit you want to search
-    url = f'https://www.reddit.com/r/{subreddit}/'
+    url = f'https://www.reddit.com/r/{subreddit}/.json'
     response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
 
     if response.status_code == 200:
-        soup = BeautifulSoup(response.content, 'html.parser')
-        posts = soup.find_all('div', class_='scrollerItem')
+        data = response.json()
+        posts = data['data']['children']
 
         results = []
         for post in posts:
-            title = post.find('h3', class_='gMb0Wj')
-            if title:
-                post_text = title.text
-                if any(term.lower() in post_text.lower() for term in key_terms):
-                    result = f"Title: {post_text}\n"
-                    result += '-' * 50 + '\n'
-                    results.append(result)
+            post_data = post['data']
+            title = post_data['title']
+            if any(term.lower() in title.lower() for term in key_terms):
+                result = f"Title: {title}\n"
+                result += '-' * 50 + '\n'
+                results.append(result)
 
         if len(results) > 0:
             return results
